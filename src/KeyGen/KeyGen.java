@@ -26,7 +26,6 @@ package KeyGen;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
 import java.security.Key;
 import java.security.KeyPair;
@@ -35,11 +34,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Scanner;
 
-import javax.crypto.spec.SecretKeySpec;
-
 public class KeyGen {
-	private static final String PUBLIC_FILE_NAME = "Public.key";
-	private static final String PRIVATE_FILE_NAME = "Private.key";
+	private static final String PUBLIC_KEY_FILE_NAME = "Public.key";
+	private static final String PRIVATE_KEY_FILE_NAME = "Private.key";
+	private static final String SYMMETRIC_KEY_FILE_NAME = "symmetric.key";
 
 
 	/**
@@ -62,8 +60,8 @@ public class KeyGen {
 		KeyPair keyPair;
 		Key publicKey, privateKey;
 
-		String pubFileName = keyName.concat(PUBLIC_FILE_NAME);
-		String priFileName = keyName.concat(PRIVATE_FILE_NAME);
+		String pubFileName = keyName.concat(PUBLIC_KEY_FILE_NAME);
+		String priFileName = keyName.concat(PRIVATE_KEY_FILE_NAME);
 
 		// Create new keys
 		try {
@@ -79,7 +77,7 @@ public class KeyGen {
 
 
 		} catch (NoSuchAlgorithmException | InvalidParameterException e) {
-			System.err.println("Exception in KeyGen.makeKeys.\n"
+			System.out.println("Exception in KeyGen.makeKeys.\n"
 					+ e.getLocalizedMessage());
 
 		}
@@ -97,14 +95,14 @@ public class KeyGen {
 		File keyFile;
 		PrintWriter pw;
 
-		//System.out.println("KeyGen.saveKeys().fileNames: " + pubFileName + " " + priFileName);
-
 		// Save public and private keys
 		try {
 			keyFile = new File(keyName);
 
 			pw = new PrintWriter(keyFile);
-			pw.println(key);
+			System.out.println(key.getEncoded());
+			pw.print(key.getEncoded());
+
 			pw.close();
 
 		} catch (FileNotFoundException e) {
@@ -113,34 +111,59 @@ public class KeyGen {
 		}
 	}
 
+	/**
+	 * Save the user's choosen string
+	 *
+	 * @param s string to save
+	 * @param fileName the name of the file
+	 */
+	private static void saveString(String s, String fileName) {
+		System.out.println("KeyGen.saveString()");
+
+		File stringFile;
+		PrintWriter pw;
+
+		// Save public and private keys
+		try {
+			stringFile = new File(fileName);
+
+			pw = new PrintWriter(stringFile);
+			System.out.println(s);
+			pw.print(s);
+
+			pw.close();
+
+		} catch (FileNotFoundException e) {
+			System.out.println("Exception occurred during KenGen.saveKeys() method:");
+			e.printStackTrace();
+		}
+	}
+
 
 	/**
 	 * Make a symmetric key from the user's chosen password.
 	 *
-	 * @param keyName  file name for saving the key
 	 * */
-	public void getSymmetricKey(String keyName) {
+	public void getSymmetricKey() {
 		System.out.println("KeyGen.getSymmetricKey()");
 
-		// User messages
+		// Output message prompts to the user
 		String messageString = "Please enter your 16 character password: ";
 		String errorString = "The password must have exactly 16 characters.";
 
-		// User input
+		// Input from the user
 		String tempString;
-		String keyFileName = keyName;
 		Scanner keyboardScanner = new Scanner(System.in);
 
-		SecretKeySpec key;
-		boolean isValid = true;
+		boolean isValid;
 
-		// Get 16-character symmetric key
+		// Get 16-character password for the symmetric key
 		do {
 			System.out.print(messageString);
 			tempString = keyboardScanner.nextLine();
 
 			// Validate input length
-			if (tempString.length() != 15) {
+			if (tempString.length() != 16) {
 				isValid = false;
 				System.out.println("\n" + errorString);
 
@@ -150,14 +173,9 @@ public class KeyGen {
 		} while (!isValid);
 
 		// Convert plain text to Secret Key
-		try {
-			key = new SecretKeySpec(tempString.getBytes("UTF-8"), "AES");
-			saveKey(key,keyFileName);
 
-		} catch (UnsupportedEncodingException e) {
-			System.err.println("Exception occurred during KenGen.saveKeys() method:");
-			e.printStackTrace();
-		}
+		saveString(tempString,SYMMETRIC_KEY_FILE_NAME);
+
 	}
 	public static void main(String[] args) {
 		System.out.println("KenGen.main()");
@@ -168,8 +186,8 @@ public class KeyGen {
 
 		System.out.println("RSA Key pairs have been created for X and Y");
 
-		kg.getSymmetricKey("Kxy.key");
-		System.out.println("Symmetric key created for X and Y");
+		kg.getSymmetricKey();
+		System.out.println("Symmetric key saved for X and Y");
 
 		System.exit(0);
 	}
