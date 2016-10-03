@@ -119,9 +119,9 @@ public class Sender {
 			// Finally get the digital digest
 			messageDigest = digitalDigestIn.getMessageDigest();
 			digitalDigestIn.close();
-
 			hashArray = messageDigest.digest();
-			System.out.println("Digital Digest of " + plainTextMessageFile.getName());
+
+			System.out.println("\nDigital Digest of " + plainTextMessageFile.getName());
 			displayHex(hashArray);
 			saveByteArray(hashArray, DIGITAL_DIGEST_FILENAME);
 
@@ -147,15 +147,22 @@ public class Sender {
 		return true;
 	}
 
+	/**
+	 * Encrypts the SHA256 Hash Code using AES and a symmetric key.  The Hex value of the resulting
+	 * cipher text is saves and also displayed on the console
+	 * @return
+	 */
 	public boolean getAesCipherText() {
 		System.out.println("Sender.getAesCipherText()");
+
+		int firstByte = 0;
+		int lastByte = 16;
+
 		//File keyFile = new File("Kxy.key");
 		Exception exception = null;
 		String encryptionKey = "1234567891234567";
 		SecureRandom sRandom = new SecureRandom();
-		String IV = String.valueOf(sRandom.nextLong());
-
-
+		String IV = String.valueOf(sRandom.nextLong()).substring(firstByte, lastByte);
 
 		// Encrypt Digital digest
 		// AES-En(Kxy, SHA256(M))
@@ -164,6 +171,10 @@ public class Sender {
 			SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
 			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(IV.getBytes("UTF-8")));
 			aesArray = cipher.doFinal(hashArray);
+
+			System.out.println("\nAES Cipher text:");
+			displayHex(aesArray);
+			saveByteArray(aesArray, AES_CIPHERTEXT_FILE_NAME);
 
 		} catch (NoSuchAlgorithmException e) {
 			exception = e;
@@ -287,6 +298,9 @@ public class Sender {
 		Sender sender = new Sender();
 		sender.getMessageFileName();
 		cont = sender.getDigitalDigest();
+
+		if (cont)
+			cont = sender.getAesCipherText();
 
 		if (cont)
 			sender.appendMessageHash();

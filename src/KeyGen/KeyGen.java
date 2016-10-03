@@ -8,8 +8,8 @@
  * Project I
  * Metropolitan State University of Denver
  *
- * This program creates RSA Key pairs (public and private) and saves then to the current directory.
- * Also, the program prompts the user for a 16-character password to be used as a symmetric key.
+ * This program creates RSA Key pairs (public and private) and saves them to the current directory.
+ * Also, the program prompts the user for a 16-character password.
  *
  * Use the main method to create multiple keys or change the names of the keys.
  *
@@ -19,6 +19,9 @@
  *      terminates.
  * 2. Running this program will automatically overwrite any previously saved keys.  Keys should be
  *      moved to a different directory to prevent lose of key.
+ * 3. The keys and passwords created by this program are not secure; this program is for
+ *      demonstration and educational purposes only.
+ *
  */
 
 package KeyGen;
@@ -44,7 +47,7 @@ public class KeyGen {
 	 * Create a new instance of KeyGen
 	 */
 	public KeyGen() {
-		System.out.println("New KeyGen instance: " + this.toString());
+		//System.out.println("New KeyGen instance: " + this.toString());
 	}
 
 	/**
@@ -53,7 +56,7 @@ public class KeyGen {
 	 * @param keyName  Name of the file to save the key in.
 	 */
 	public static void makeKeyPair(String keyName) {
-		System.out.println("KeyGen.makeKeys()");
+		//System.out.println("KeyGen.makeKeys()");
 
 		SecureRandom sRandom = new SecureRandom();
 		KeyPairGenerator kpGenerator;
@@ -90,7 +93,7 @@ public class KeyGen {
 	 * @param keyName the name of the file to save the key in.
 	 */
 	private static void saveKey(Key key, String keyName) {
-		System.out.println("KeyGen.saveKeys()");
+		//System.out.println("KeyGen.saveKeys()");
 
 		File keyFile;
 		PrintWriter pw;
@@ -100,7 +103,7 @@ public class KeyGen {
 			keyFile = new File(keyName);
 
 			pw = new PrintWriter(keyFile);
-			System.out.println(key.getEncoded());
+			System.out.println(key.get);
 			pw.print(key.getEncoded());
 
 			pw.close();
@@ -118,20 +121,22 @@ public class KeyGen {
 	 * @param fileName the name of the file
 	 */
 	private static void saveString(String s, String fileName) {
-		System.out.println("KeyGen.saveString()");
+		//System.out.println("KeyGen.saveString()");
 
 		File stringFile;
 		PrintWriter pw;
+		String filePath;
 
 		// Save public and private keys
 		try {
 			stringFile = new File(fileName);
+			filePath = stringFile.getPath().concat("\\" + fileName);
 
 			pw = new PrintWriter(stringFile);
-			System.out.println(s);
 			pw.print(s);
-
 			pw.close();
+
+			System.out.println("Input saved: " + filePath);
 
 		} catch (FileNotFoundException e) {
 			System.out.println("Exception occurred during KenGen.saveKeys() method:");
@@ -145,7 +150,7 @@ public class KeyGen {
 	 *
 	 * */
 	public void getSymmetricKey() {
-		System.out.println("KeyGen.getSymmetricKey()");
+		// System.out.println("KeyGen.getSymmetricKey()");
 
 		// Output message prompts to the user
 		String messageString = "Please enter your 16 character password: ";
@@ -178,7 +183,7 @@ public class KeyGen {
 
 	}
 	public static void main(String[] args) {
-		System.out.println("KenGen.main()");
+		// System.out.println("KenGen.main()");
 
 		KeyGen kg = new KeyGen();
 		kg.makeKeyPair("X");
