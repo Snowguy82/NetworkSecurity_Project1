@@ -59,8 +59,26 @@ public class Sender {
 		plainTextMessageFile = null;
 	}
 
+	private String getEncryptionString() {
+		// System.out.println("Sender.getEncryption();");
+
+		String tempString = "";
+		File symmetricKeyFile = new File("symmetric.key");
+		Scanner fileScanner;
+
+		try {
+			fileScanner = new Scanner(symmetricKeyFile);
+			tempString = fileScanner.nextLine();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		return tempString;
+	}
+
 	public void getMessageFileName() {
-		System.out.println("Sender.getMessageFileName()");
+		// System.out.println("Sender.getMessageFileName()");
 
 		String promptString = "Enter the name of the message file: ";
 		String errorString = "Cannot find the specified file.\n";
@@ -80,7 +98,7 @@ public class Sender {
 		} while (!valid);
 
 		plainTextMessageFile = file;
-		System.out.println("File success: " + file.getPath());
+		System.out.println("File loaded successfully: " + file.getPath());
 	}
 
 	/**
@@ -89,7 +107,7 @@ public class Sender {
 	 * @return true if the hash was saved successfully, false otherwise.
 	 */
 	public boolean getDigitalDigest() {
-		System.out.println("Sender.getDigitalDigest()");
+		// System.out.println("Sender.getDigitalDigest()");
 
 		final int BUFFER_SIZE = 32 * 1024;
 		//System.out.println("... File Size: " + plainTextMessageFile.length());
@@ -153,20 +171,25 @@ public class Sender {
 	 * @return
 	 */
 	public boolean getAesCipherText() {
-		System.out.println("Sender.getAesCipherText()");
+		// System.out.println("Sender.getAesCipherText()");
 
 		int firstByte = 0;
 		int lastByte = 16;
 
 		//File keyFile = new File("Kxy.key");
 		Exception exception = null;
-		String encryptionKey = "1234567891234567";
+		String encryptionKey = getEncryptionString();
 		SecureRandom sRandom = new SecureRandom();
 		String IV = String.valueOf(sRandom.nextLong()).substring(firstByte, lastByte);
+
 
 		// Encrypt Digital digest
 		// AES-En(Kxy, SHA256(M))
 		try {
+
+			if (encryptionKey.equals(""))
+				throw new InvalidKeyException("User must provide a 16 character password.");
+
 			Cipher cipher = Cipher.getInstance("AES/CFB/NoPadding", "SunJCE");
 			SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes("UTF-8"), "AES");
 			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(IV.getBytes("UTF-8")));
@@ -215,13 +238,13 @@ public class Sender {
 
 
 
-	public void appendMessageHash() {
-/*		System.out.println("Sender.appendMessageHash()");
+	public void rsaEncryptMessage() {
+		System.out.println("Sender.rsaEncryptMessage()");
 
-		final int BUFFER_SIZE = 32 * 1024;
+		final int BUFFER_SIZE = 117;
 		File file;
 		PrintWriter pw;
-		byte[] messageAppendArray = new byte[BUFFER_SIZE];
+		byte[] messageByteArray = new byte[BUFFER_SIZE];
 
 
 
@@ -238,7 +261,7 @@ public class Sender {
 		} catch (FileNotFoundException e) {
 			System.err.println("Exception occurred during Sender.saveByteArray() method:");
 			e.printStackTrace();
-	*/
+
 
 	}
 
@@ -248,7 +271,8 @@ public class Sender {
 	 * param byteArray the array to print
 	 */
 	public void displayHex(byte[] byteArray) {
-		System.out.println("Sender.displayHex()");
+		// System.out.println("Sender.displayHex()");
+
 		byte[] byteArrayClone = byteArray.clone();;
 
 		for (int i = 0, column = 0; i < byteArrayClone.length; i++, column++) {
@@ -267,13 +291,12 @@ public class Sender {
 	 * @param array byte array to save
 	 * @param name file name
 	 */
-	private void saveByteArray(byte[] array, String name) {
-		System.out.println("Sender.saveByteArray()");
+	private void saveByteArray(byte[] array, String name, boolean hasMore) {
+		// System.out.println("Sender.saveByteArray()");
 
 		File file;
 		PrintWriter pw;
 		byte[] byteArray = array.clone();
-
 
 		// Save the array
 		try {
@@ -283,7 +306,7 @@ public class Sender {
 			for (int i = 0; i < byteArray.length; i++)
 				pw.print(byteArray[i]);
 
-			pw.close();
+				pw.close();
 
 		} catch (FileNotFoundException e) {
 			System.err.println("Exception occurred during Sender.saveByteArray() method:");
@@ -303,7 +326,7 @@ public class Sender {
 			cont = sender.getAesCipherText();
 
 		if (cont)
-			sender.appendMessageHash();
+			sender.rsaEncryptMessage();
 
 	}
 }

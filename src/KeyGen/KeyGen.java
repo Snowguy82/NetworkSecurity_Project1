@@ -31,10 +31,13 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.security.InvalidParameterException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Scanner;
 
 public class KeyGen {
@@ -62,6 +65,9 @@ public class KeyGen {
 		KeyPairGenerator kpGenerator;
 		KeyPair keyPair;
 		Key publicKey, privateKey;
+		KeyFactory kFactory;
+		RSAPublicKeySpec specPublicKey;
+		RSAPrivateKeySpec specPrivateKey;
 
 		String pubFileName = keyName.concat(PUBLIC_KEY_FILE_NAME);
 		String priFileName = keyName.concat(PRIVATE_KEY_FILE_NAME);
@@ -97,16 +103,22 @@ public class KeyGen {
 
 		File keyFile;
 		PrintWriter pw;
+		String filePath;
+		
+
 
 		// Save public and private keys
 		try {
 			keyFile = new File(keyName);
+			filePath = keyFile.getAbsolutePath().concat("\\" + keyName);
 
 			pw = new PrintWriter(keyFile);
-			System.out.println(key.get);
-			pw.print(key.getEncoded());
+			System.out.println(keyName + "\n" + key + "\n");
+			pw.print(key);
 
 			pw.close();
+
+			System.out.println("Key Saved: " + filePath + "\n");
 
 		} catch (FileNotFoundException e) {
 			System.err.println("Exception occurred during KenGen.saveKeys() method:");
@@ -115,7 +127,7 @@ public class KeyGen {
 	}
 
 	/**
-	 * Save the user's choosen string
+	 * Save the user's chosen string
 	 *
 	 * @param s string to save
 	 * @param fileName the name of the file
@@ -130,13 +142,13 @@ public class KeyGen {
 		// Save public and private keys
 		try {
 			stringFile = new File(fileName);
-			filePath = stringFile.getPath().concat("\\" + fileName);
+			filePath = stringFile.getAbsolutePath().concat("\\" + fileName);
 
 			pw = new PrintWriter(stringFile);
 			pw.print(s);
 			pw.close();
 
-			System.out.println("Input saved: " + filePath);
+			System.out.println("Input saved: " + filePath + "\n");
 
 		} catch (FileNotFoundException e) {
 			System.out.println("Exception occurred during KenGen.saveKeys() method:");
