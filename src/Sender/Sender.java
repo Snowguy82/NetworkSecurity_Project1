@@ -24,11 +24,14 @@
 package Sender;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -269,6 +272,24 @@ public class Sender {
 		return null;
 	}
 
+	private void appendMEssage() {
+		byte[] buffer = new byte[1024];
+		try {
+			ObjectOutputStream messageOut = new ObjectOutputStream(new BufferedOutputStream(
+					new FileOutputStream("message.add-msg")));
+			messageOut.write(aesArray);
+			for (int i = 0; i < plainTextMessageFile.length(); i++) {
+				buffer =
+
+			}
+			messageOut.write();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+}
+
 
 	public void rsaEncryptMessage() {
 		System.out.println("Sender.rsaEncryptMessage()");
@@ -278,10 +299,13 @@ public class Sender {
 		Cipher cipher;
 		File file;
 		PrintWriter pw;
+		byte[] cipherText = aesArray.clone();
+		byte[] buffer = new byte[BUFFER_SIZE];
 
 		try {
 			cipher = Cipher.getInstance("RSAECBPKCS1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, key, new SecureRandom());
+
 
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
