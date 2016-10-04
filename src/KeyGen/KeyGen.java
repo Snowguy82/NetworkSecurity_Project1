@@ -26,9 +26,14 @@
 
 package KeyGen;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.security.InvalidParameterException;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -36,6 +41,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Scanner;
@@ -65,7 +71,7 @@ public class KeyGen {
 		KeyPairGenerator kpGenerator;
 		KeyPair keyPair;
 		Key publicKey, privateKey;
-		KeyFactory kFactory;
+		KeyFactory keyFactory;
 		RSAPublicKeySpec specPublicKey;
 		RSAPrivateKeySpec specPrivateKey;
 
@@ -74,21 +80,30 @@ public class KeyGen {
 
 		// Create new keys
 		try {
-			kpGenerator= KeyPairGenerator.getInstance("RSA");
+			kpGenerator = KeyPairGenerator.getInstance("RSA");
 			kpGenerator.initialize(1024, sRandom);
 			keyPair = kpGenerator.generateKeyPair();
 
 			publicKey = keyPair.getPublic();
 			privateKey = keyPair.getPrivate();
 
-			saveKey(publicKey, pubFileName);
-			saveKey(privateKey, priFileName);
+			keyFactory = KeyFactory.getInstance("RSA");
+			specPublicKey = keyFactory.getKeySpec(publicKey,
+					RSAPublicKeySpec.class);
+			specPrivateKey = keyFactory.getKeySpec(privateKey,
+					RSAPrivateKeySpec.class);
+
+
+			saveKey(specPublicKey.getModulus(), specPublicKey.getPublicExponent(), pubFileName);
+			saveKey(specPrivateKey.getModulus(), specPrivateKey.getPrivateExponent(), priFileName);
 
 
 		} catch (NoSuchAlgorithmException | InvalidParameterException e) {
 			System.out.println("Exception in KeyGen.makeKeys.\n"
 					+ e.getLocalizedMessage());
 
+		} catch (InvalidKeySpecException e) {
+			e.printStackTrace();
 		}
 	} // End makeKeyPair(String name)
 
@@ -98,12 +113,12 @@ public class KeyGen {
 	 * @param key the key to be saved
 	 * @param keyName the name of the file to save the key in.
 	 */
-	private static void saveKey(Key key, String keyName) {
+	private static void saveKey(BigInteger mod, BigInteger exp, String keyName) {
 		//System.out.println("KeyGen.saveKeys()");
 
 		File keyFile;
-		PrintWriter pw;
 		String filePath;
+		ObjectOutputStream objectOut;
 		
 
 
@@ -112,16 +127,26 @@ public class KeyGen {
 			keyFile = new File(keyName);
 			filePath = keyFile.getAbsolutePath().concat("\\" + keyName);
 
-			pw = new PrintWriter(keyFile);
-			System.out.println(keyName + "\n" + key + "\n");
-			pw.print(key);
+			System.out.println(keyName);
+			System.out.println("Modulus = " + mod.toString());
+			System.out.println("Exponent = " + exp.toString());
+			System.out.println("Saved at " + filePath);
 
-			pw.close();
+			objectOut = new ObjectOutputStream(new BufferedOutputStream(
+					new FileOutputStream(keyFile)));
 
-			System.out.println("Key Saved: " + filePath + "\n");
+			objectOut.writeObject(mod);
+			objectOut.writeObject(exp);
+
+
+			objectOut.close();
 
 		} catch (FileNotFoundException e) {
-			System.err.println("Exception occurred during KenGen.saveKeys() method:");
+			System.err.println("KenGen.saveKeys() caused the following exception:");
+			e.printStackTrace();
+
+		} catch (IOException e) {
+			System.err.println("KenGen.saveKeys() caused the following exception:");
 			e.printStackTrace();
 		}
 	}

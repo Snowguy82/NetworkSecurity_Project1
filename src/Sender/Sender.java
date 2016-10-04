@@ -28,15 +28,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Scanner;
 
 import javax.crypto.BadPaddingException;
@@ -236,14 +242,58 @@ public class Sender {
 		}
 	}
 
+	private PublicKey getKey() {
+		ObjectInputStream objectInputStream;
+		RSAPublicKeySpec publicKeySpec;
+		KeyFactory keyFactory;
+		BigInteger mod, exp;
+
+
+		try {
+			objectInputStream =
+					new ObjectInputStream(new FileInputStream("YPublic.key"));
+
+			mod = (BigInteger) objectInputStream.readObject();
+			exp = (BigInteger) objectInputStream.readObject();
+
+			publicKeySpec = new RSAPublicKeySpec(mod, exp);
+			keyFactory = KeyFactory.getInstance("RSA");
+
+			return keyFactory.generatePublic(publicKeySpec);
+
+		} catch (IOException | ClassNotFoundException | InvalidKeySpecException |
+				NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
 
 
 	public void rsaEncryptMessage() {
 		System.out.println("Sender.rsaEncryptMessage()");
 
 		final int BUFFER_SIZE = 117;
+		PublicKey key = getKey();
+		Cipher cipher;
 		File file;
 		PrintWriter pw;
+
+		try {
+			cipher = Cipher.getInstance("RSAECBPKCS1Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, key, new SecureRandom());
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+
+
 		byte[] messageByteArray = new byte[BUFFER_SIZE];
 
 
@@ -273,7 +323,7 @@ public class Sender {
 	public void displayHex(byte[] byteArray) {
 		// System.out.println("Sender.displayHex()");
 
-		byte[] byteArrayClone = byteArray.clone();;
+		byte[] byteArrayClone = byteArray.clone();
 
 		for (int i = 0, column = 0; i < byteArrayClone.length; i++, column++) {
 			System.out.format("%2X ", byteArrayClone[i]);
@@ -291,7 +341,7 @@ public class Sender {
 	 * @param array byte array to save
 	 * @param name file name
 	 */
-	private void saveByteArray(byte[] array, String name, boolean hasMore) {
+	private void saveByteArray(byte[] array, String name) {
 		// System.out.println("Sender.saveByteArray()");
 
 		File file;
