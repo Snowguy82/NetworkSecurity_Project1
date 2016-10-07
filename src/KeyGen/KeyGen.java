@@ -26,13 +26,9 @@
 
 package KeyGen;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.InvalidParameterException;
 import java.security.Key;
@@ -46,10 +42,11 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Scanner;
 
+
 public class KeyGen {
 	private static final String PUBLIC_KEY_FILE_NAME = "Public.key";
 	private static final String PRIVATE_KEY_FILE_NAME = "Private.key";
-	private static final String SYMMETRIC_KEY_FILE_NAME = "symmetric.key";
+	private static final String SYMMETRIC_KEY_FILE_NAME = "Kxy.key";
 
 
 	/**
@@ -94,8 +91,8 @@ public class KeyGen {
 					RSAPrivateKeySpec.class);
 
 
-			saveKey(specPublicKey.getModulus(), specPublicKey.getPublicExponent(), pubFileName);
-			saveKey(specPrivateKey.getModulus(), specPrivateKey.getPrivateExponent(), priFileName);
+			saveKeyPair(specPublicKey.getModulus(), specPublicKey.getPublicExponent(), pubFileName);
+			saveKeyPair(specPrivateKey.getModulus(), specPrivateKey.getPrivateExponent(), priFileName);
 
 
 		} catch (NoSuchAlgorithmException | InvalidParameterException e) {
@@ -107,30 +104,27 @@ public class KeyGen {
 		}
 	} // End makeKeyPair(String name)
 
+
 	/**
-	 * Save a security key to the current directory
+	 * Saves the RSA Key
 	 *
-	 * @param key the key to be saved
-	 * @param keyName the name of the file to save the key in.
+	 * @param mod modulus of key
+	 * @param exp exponent of key
+	 * @param keyName name of the kay file
 	 */
-	private static void saveKey(BigInteger mod, BigInteger exp, String keyName) {
+	private static void saveKeyPair(BigInteger mod, BigInteger exp, String keyName) {
 		//System.out.println("KeyGen.saveKeys()");
 
 		File keyFile;
-		String filePath;
 		ObjectOutputStream objectOut;
 		
-
-
 		// Save public and private keys
 		try {
 			keyFile = new File(keyName);
-			filePath = keyFile.getAbsolutePath().concat("\\" + keyName);
 
 			System.out.println(keyName);
 			System.out.println("Modulus = " + mod.toString());
 			System.out.println("Exponent = " + exp.toString());
-			System.out.println("Saved at " + filePath);
 
 			objectOut = new ObjectOutputStream(new BufferedOutputStream(
 					new FileOutputStream(keyFile)));
@@ -138,15 +132,14 @@ public class KeyGen {
 			objectOut.writeObject(mod);
 			objectOut.writeObject(exp);
 
-
 			objectOut.close();
 
 		} catch (FileNotFoundException e) {
-			System.err.println("KenGen.saveKeys() caused the following exception:");
+			System.out.println("KenGen.saveKeys() caused the following exception:");
 			e.printStackTrace();
 
 		} catch (IOException e) {
-			System.err.println("KenGen.saveKeys() caused the following exception:");
+			System.out.println("KenGen.saveKeys() caused the following exception:");
 			e.printStackTrace();
 		}
 	}
@@ -157,26 +150,29 @@ public class KeyGen {
 	 * @param s string to save
 	 * @param fileName the name of the file
 	 */
-	private static void saveString(String s, String fileName) {
-		//System.out.println("KeyGen.saveString()");
+	private static void saveSymmetricKey(String s, String fileName) {
+		//System.out.println("KeyGen.saveSymmetricKey()");
 
-		File stringFile;
-		PrintWriter pw;
-		String filePath;
+		ObjectOutputStream keyOutput;
 
-		// Save public and private keys
+		// Save key
 		try {
-			stringFile = new File(fileName);
-			filePath = stringFile.getAbsolutePath().concat("\\" + fileName);
 
-			pw = new PrintWriter(stringFile);
-			pw.print(s);
-			pw.close();
+			SecretKeySpec key = new SecretKeySpec(s.getBytes("UTF-8"), "AES");
 
-			System.out.println("Input saved: " + filePath + "\n");
+			keyOutput = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
+			keyOutput.writeObject(key);
 
 		} catch (FileNotFoundException e) {
-			System.out.println("Exception occurred during KenGen.saveKeys() method:");
+			System.out.println("Exception occurred during KenGen.saveSymmetricKey() method:");
+			e.printStackTrace();
+
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("Exception occurred during KenGen.saveSymmetricKey() method:");
+			e.printStackTrace();
+
+		} catch (IOException e) {
+			System.out.println("Exception occurred during KenGen.saveSymmetricKey() method:");
 			e.printStackTrace();
 		}
 	}
@@ -216,7 +212,7 @@ public class KeyGen {
 
 		// Convert plain text to Secret Key
 
-		saveString(tempString,SYMMETRIC_KEY_FILE_NAME);
+		saveSymmetricKey(tempString,SYMMETRIC_KEY_FILE_NAME);
 
 	}
 	public static void main(String[] args) {
